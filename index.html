@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MindScan — Student Mental Wellness</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --glass-bg:rgba(255,255,255,0.85);
+    --glass-border:rgba(255,255,255,1);
+    --glass-shadow:0 10px 40px rgba(30,41,59,0.06);
+    --accent:#0ea5e9;
+    --accent-hover:#0284c7;
+    --text:#1e293b;
+    --text-dark:#0f172a;
+    --muted:#64748b;
+    --bg-mesh-1:rgba(14,165,233,0.08);
+    --bg-mesh-2:rgba(16,185,129,0.06);
+    --bg-mesh-3:rgba(99,102,241,0.06);
+  }
+  html{scroll-behavior:smooth}
+  body{font-family:'Outfit',sans-serif;background:#f8fafc;min-height:100vh;color:var(--text);overflow-x:hidden;}
+  .bg-mesh{
+    position:fixed;inset:0;z-index:0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 10%,var(--bg-mesh-1) 0%,transparent 70%),
+      radial-gradient(ellipse 60% 60% at 80% 80%,var(--bg-mesh-2) 0%,transparent 70%),
+      radial-gradient(ellipse 50% 50% at 60% 20%,var(--bg-mesh-3) 0%,transparent 70%),
+      linear-gradient(135deg,#ffffff 0%,#f1f5f9 50%,#e2e8f0 100%);
+  }
+  .noise{position:fixed;inset:0;z-index:1;opacity:0.02;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");pointer-events:none;}
+  .content{position:relative;z-index:2}
+
+  nav{position:sticky;top:0;z-index:100;backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);background:rgba(255,255,255,0.75);border-bottom:1px solid rgba(226,232,240,0.8);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:64px;}
+  .nav-logo{display:flex;align-items:center;gap:10px;font-size:1.3rem;font-weight:700;letter-spacing:-0.5px;color:var(--text-dark);}
+  .nav-logo .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);display:inline-block;}
+  .nav-links{display:flex;gap:0.5rem}
+  .nav-btn{background:none;border:none;color:var(--muted);font-family:'Outfit',sans-serif;font-size:0.9rem;font-weight:500;padding:8px 16px;border-radius:20px;cursor:pointer;transition:all 0.2s;}
+  .nav-btn:hover{background:rgba(15,23,42,0.04);color:var(--text-dark)}
+  .nav-btn.active{background:rgba(14,165,233,0.1);color:var(--accent-hover);}
+  .nav-mobile-toggle{display:none;background:none;border:none;color:var(--text);font-size:1.4rem;cursor:pointer;}
+  .glass{background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:24px;backdrop-filter:blur(16px) saturate(160%);-webkit-backdrop-filter:blur(16px) saturate(160%);box-shadow:var(--glass-shadow);}
+  .page{display:none;animation:fadeIn 0.5s ease}
+  .page.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
+
+  /* HERO */
+  .hero{min-height:calc(100vh - 64px);display:flex;align-items:center;justify-content:center;padding:2rem;}
+  .hero-inner{max-width:700px;width:100%;text-align:center}
+  .hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(14,165,233,0.1);border:1px solid rgba(14,165,233,0.2);border-radius:20px;padding:6px 16px;font-size:0.8rem;font-weight:600;letter-spacing:0.5px;color:var(--accent-hover);margin-bottom:2rem;}
+  .hero-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite;}
+  .hero h1{font-size:clamp(2.5rem,6vw,4.5rem);font-weight:700;line-height:1.15;margin-bottom:1.2rem;color:var(--text-dark);letter-spacing:-1px;}
+  .hero p{font-size:1.15rem;color:var(--muted);line-height:1.7;margin-bottom:2.5rem;max-width:540px;margin-left:auto;margin-right:auto;}
+  .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--accent);color:#fff;border:none;padding:16px 40px;border-radius:50px;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.3s;font-family:'Outfit',sans-serif;box-shadow:0 4px 14px rgba(14,165,233,0.3);}
+  .btn-primary:hover{background:var(--accent-hover);transform:translateY(-2px);box-shadow:0 6px 20px rgba(14,165,233,0.4);}
+  .btn-primary:active{transform:translateY(0);}
+  .btn-primary:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
+  .hero-stats{display:flex;justify-content:center;gap:3rem;margin-top:3.5rem;flex-wrap:wrap;}
+  .stat-item{text-align:center}
+  .stat-num{font-size:2rem;font-weight:700;color:var(--text-dark);margin-bottom:4px;}
+  .stat-label{font-size:0.8rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+
+  /* QUIZ */
+  .quiz-wrap{max-width:760px;margin:0 auto;padding:4rem 1.5rem;}
+  .quiz-header{margin-bottom:2.5rem;text-align:center}
+  .quiz-header h2{font-size:1.8rem;font-weight:700;color:var(--text-dark);margin-bottom:0.5rem}
+  .quiz-header p{color:var(--muted);font-size:1rem}
+  .progress-wrap{margin-bottom:2.5rem}
+  .progress-info{display:flex;justify-content:space-between;font-size:0.85rem;font-weight:500;color:var(--muted);margin-bottom:10px}
+  .progress-bar{height:6px;background:rgba(15,23,42,0.05);border-radius:10px;overflow:hidden;}
+  .progress-fill{height:100%;border-radius:10px;background:var(--accent);transition:width 0.5s cubic-bezier(0.4,0,0.2,1);}
+  .q-card{padding:2.5rem;margin-bottom:2rem}
+  .q-num{font-size:0.8rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:1rem}
+  .q-text{font-size:1.3rem;font-weight:600;color:var(--text-dark);line-height:1.5;margin-bottom:2rem}
+  .q-category{display:inline-block;font-size:0.75rem;font-weight:600;padding:4px 12px;border-radius:20px;margin-bottom:1.5rem;letter-spacing:0.5px;background:rgba(14,165,233,0.1);color:var(--accent-hover);}
+  .options-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+  .opt-btn{background:#ffffff;border:1px solid rgba(148,163,184,0.4);border-radius:16px;padding:16px 8px;color:var(--text);cursor:pointer;transition:all 0.2s;text-align:center;font-family:'Outfit',sans-serif;font-size:0.85rem;font-weight:500;}
+  .opt-btn:hover{background:rgba(248,250,252,1);border-color:rgba(14,165,233,0.4);transform:translateY(-2px);}
+  .opt-btn.selected{background:rgba(14,165,233,0.08);border-color:var(--accent);color:var(--accent-hover);box-shadow:0 4px 12px rgba(14,165,233,0.1);}
+  .opt-label{font-size:0.75rem;color:var(--muted);margin-top:6px;font-weight:400;}
+  .opt-btn.selected .opt-label{color:var(--accent-hover);}
+  .scale-labels{display:flex;justify-content:space-between;font-size:0.75rem;font-weight:500;color:var(--muted);margin-top:12px;padding:0 8px}
+  .quiz-nav{display:flex;justify-content:space-between;align-items:center;margin-top:2rem}
+  .btn-secondary{background:#ffffff;border:1px solid rgba(148,163,184,0.4);color:var(--text);padding:14px 32px;border-radius:50px;font-family:'Outfit',sans-serif;font-size:0.95rem;font-weight:500;cursor:pointer;transition:all 0.2s;}
+  .btn-secondary:hover:not(:disabled){background:#f8fafc;color:var(--text-dark);border-color:var(--muted);}
+  .btn-secondary:disabled{opacity:0.4;cursor:not-allowed;background:transparent;}
+  .q-counter{font-size:0.9rem;font-weight:500;color:var(--muted)}
+
+  /* LOADING STATE */
+  .loading-overlay{display:none;position:fixed;inset:0;z-index:999;background:rgba(248,250,252,0.9);backdrop-filter:blur(8px);align-items:center;justify-content:center;flex-direction:column;gap:1.5rem;}
+  .loading-overlay.visible{display:flex;}
+  .spinner{width:48px;height:48px;border:3px solid rgba(14,165,233,0.2);border-top:3px solid var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-text{font-size:1rem;font-weight:500;color:var(--muted);}
+
+  /* RESULTS */
+  .result-wrap{max-width:900px;margin:0 auto;padding:4rem 1.5rem}
+  .result-hero{text-align:center;margin-bottom:3rem;padding:3rem 2rem}
+  .stress-meter{position:relative;width:220px;height:220px;margin:0 auto 2rem}
+  .meter-ring{transform:rotate(-90deg)}
+  .meter-ring circle{fill:none;stroke-width:14}
+  .meter-bg{stroke:rgba(15,23,42,0.04)}
+  .meter-fill{stroke-dasharray:565;transition:stroke-dashoffset 2s cubic-bezier(0.4,0,0.2,1);stroke-linecap:round}
+  .meter-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .meter-pct{font-size:3rem;font-weight:700;color:var(--text-dark);line-height:1;}
+  .meter-label{font-size:0.8rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:4px;}
+  .result-title{font-size:2.2rem;font-weight:700;color:var(--text-dark);margin-bottom:0.75rem;letter-spacing:-0.5px;}
+  .result-subtitle{color:var(--muted);font-size:1.05rem;max-width:500px;margin:0 auto;line-height:1.6;}
+  .result-badge{display:inline-block;padding:8px 24px;border-radius:30px;font-size:0.9rem;font-weight:600;margin-bottom:2rem;}
+  .result-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-bottom:2.5rem}
+  .result-section h3{font-size:1.1rem;font-weight:600;color:var(--text-dark);margin-bottom:1.2rem;display:flex;align-items:center;gap:10px}
+  .insight-list{list-style:none;display:flex;flex-direction:column;gap:10px}
+  .insight-item{display:flex;align-items:flex-start;gap:12px;font-size:0.95rem;color:var(--text);line-height:1.5;padding:14px 18px;background:rgba(255,255,255,0.6);border:1px solid rgba(226,232,240,0.8);border-radius:12px;}
+  .insight-item::before{content:'→';color:var(--accent);font-weight:700;flex-shrink:0;}
+  .yt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1.5rem}
+  .yt-card{padding:1.2rem;border-radius:20px;cursor:pointer;transition:all 0.3s;text-decoration:none;color:inherit;display:block;background:#ffffff;border:1px solid rgba(226,232,240,0.8);}
+  .yt-card:hover{transform:translateY(-4px);box-shadow:0 12px 24px rgba(30,41,59,0.05);border-color:rgba(14,165,233,0.3);}
+  .yt-thumb{width:100%;aspect-ratio:16/9;border-radius:12px;background:linear-gradient(135deg,rgba(241,245,249,1),rgba(226,232,240,0.5));display:flex;align-items:center;justify-content:center;margin-bottom:1rem;position:relative;overflow:hidden;font-size:2.5rem;}
+  .yt-play{position:absolute;width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,0.95);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+  .yt-play::after{content:'';border-left:14px solid #ef4444;border-top:8px solid transparent;border-bottom:8px solid transparent;margin-left:4px}
+  .yt-title{font-size:0.95rem;font-weight:600;color:var(--text-dark);margin-bottom:6px;line-height:1.4}
+  .yt-channel{font-size:0.8rem;color:var(--muted);font-weight:500;}
+  .yt-tag{display:inline-block;font-size:0.7rem;font-weight:600;padding:4px 10px;border-radius:8px;margin-bottom:10px;background:rgba(241,245,249,1);color:var(--muted);}
+  .metrics-wrap{margin-top:4rem;padding:2.5rem}
+  .metrics-title{font-size:1.2rem;font-weight:700;color:var(--text-dark);margin-bottom:1.5rem;display:flex;align-items:center;gap:12px}
+  .metrics-title::before{content:'';display:inline-block;width:4px;height:20px;border-radius:4px;background:var(--accent)}
+  .metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;margin-bottom:2rem}
+  .metric-card{padding:1.5rem;border-radius:16px;text-align:center;background:#ffffff;border:1px solid rgba(226,232,240,0.8);}
+  .metric-val{font-size:2.2rem;font-weight:700;color:var(--text-dark);margin-bottom:4px;letter-spacing:-0.5px;}
+  .metric-name{font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+  .metric-bar{height:6px;border-radius:4px;margin-top:12px;background:rgba(15,23,42,0.04)}
+  .metric-bar-fill{height:100%;border-radius:4px;transition:width 2s ease;background:var(--accent);}
+  .model-info{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;font-size:0.85rem;color:var(--muted);}
+  .model-info-item{padding:12px 16px;background:rgba(255,255,255,0.6);border:1px solid rgba(226,232,240,0.8);border-radius:12px;line-height:1.5;}
+  .model-info-item strong{color:var(--text-dark);display:block;margin-bottom:4px;font-size:0.9rem}
+  .python-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:12px;padding:4px 12px;font-size:0.75rem;font-weight:600;color:#1d4ed8;margin-left:8px;}
+  .about-wrap{max-width:860px;margin:0 auto;padding:4rem 1.5rem}
+  .about-title{font-size:2.5rem;font-weight:700;color:var(--text-dark);margin-bottom:0.5rem;letter-spacing:-1px;}
+  .about-sub{color:var(--muted);font-size:1.1rem;margin-bottom:2.5rem}
+  .creators-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1.5rem;margin-bottom:4rem}
+  .creator-card{padding:2rem 1.5rem;text-align:center;background:#ffffff;border:1px solid rgba(226,232,240,0.8);border-radius:20px;}
+  .avatar{width:80px;height:80px;border-radius:50%;margin:0 auto 1.2rem;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;background:#f0f9ff;border:2px solid #bae6fd;color:var(--accent-hover);}
+  .creator-name{font-size:1.1rem;font-weight:700;color:var(--text-dark);margin-bottom:4px}
+  .creator-role{font-size:0.85rem;font-weight:500;color:var(--muted);margin-bottom:8px}
+  .creator-dept{font-size:0.8rem;font-weight:600;color:var(--accent);}
+  .tech-section{margin-top:2.5rem}
+  .tech-section h3{font-size:1.2rem;font-weight:600;color:var(--text-dark);margin-bottom:1.2rem}
+  .tech-tags{display:flex;flex-wrap:wrap;gap:10px}
+  .tech-tag{padding:8px 16px;border-radius:20px;font-size:0.85rem;font-weight:500;background:#ffffff;color:var(--text);border:1px solid rgba(226,232,240,0.8);}
+  .dataset-card{padding:1.8rem;margin-top:2rem;background:#ffffff;border:1px solid rgba(226,232,240,0.8);}
+  .dataset-card h4{font-size:1.1rem;font-weight:600;color:var(--text-dark);margin-bottom:1rem}
+  .dataset-card p{font-size:0.95rem;color:var(--muted);line-height:1.7}
+  .restart-wrap{text-align:center;padding:3rem 0}
+  .btn-restart{background:#ffffff;border:1px solid rgba(226,232,240,1);color:var(--text-dark);padding:14px 36px;border-radius:50px;font-family:'Outfit',sans-serif;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.2s;margin-top:1.2rem;display:inline-block;box-shadow:0 4px 12px rgba(30,41,59,0.03);}
+  .btn-restart:hover{background:#f8fafc;transform:translateY(-2px);box-shadow:0 6px 16px rgba(30,41,59,0.06);}
+  @media(max-width:640px){
+    .nav-links{display:none}
+    .nav-links.open{display:flex;flex-direction:column;position:fixed;inset:64px 0 0;background:rgba(255,255,255,0.98);backdrop-filter:blur(20px);padding:2rem;gap:1rem;z-index:99}
+    .nav-mobile-toggle{display:block}
+    .result-grid{grid-template-columns:1fr}
+    .metrics-grid{grid-template-columns:repeat(2,1fr)}
+    .model-info{grid-template-columns:1fr}
+    .quiz-wrap,.result-wrap,.about-wrap{padding:2rem 1rem}
+    .hero h1{font-size:2.5rem;}
+  }
+</style>
+</head>
+<body>
+<div class="bg-mesh"></div>
+<div class="noise"></div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadingText">Running Python ML model…</div>
+</div>
+
+<div class="content">
+<nav>
+  <div class="nav-logo"><span class="dot"></span>MindScan</div>
+  <div class="nav-links" id="navLinks">
+    <button class="nav-btn active" onclick="showPage('home')">Home</button>
+    <button class="nav-btn" onclick="showPage('quiz')">Take Assessment</button>
+    <button class="nav-btn" onclick="showPage('about')">About & Creators</button>
+  </div>
+  <button class="nav-mobile-toggle" onclick="toggleNav()">☰</button>
+</nav>
+
+<!-- HOME -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="hero-badge">✦ Python ML Backend — scikit-learn</div>
+      <h1>Know Your Mind,<br/>Own Your Calm</h1>
+      <p>A Logistic Regression model trained by Python's scikit-learn. Answer 15 questions and get a personalised mental wellness report powered by a real ML backend.</p>
+      <button class="btn-primary" onclick="showPage('quiz')">Start Assessment &nbsp;→</button>
+      <div class="hero-stats">
+        <div class="stat-item">
+          <div class="stat-num" id="home-acc-val">…</div>
+          <div class="stat-label">Accuracy</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">15</div>
+          <div class="stat-label">Questions</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">3</div>
+          <div class="stat-label">Levels</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">~3 min</div>
+          <div class="stat-label">Duration</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div class="page" id="page-quiz">
+  <div class="quiz-wrap">
+    <div class="quiz-header">
+      <h2>Mental Wellness Assessment</h2>
+      <p>Rate each statement honestly — there are no right or wrong answers.</p>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-info">
+        <span id="progressLabel">Question 1 of 15</span>
+        <span id="progressPct">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+    <div class="q-card glass" id="questionCard">
+      <div class="q-category" id="qCategory">Academic</div>
+      <div class="q-num" id="qNum">Question 01</div>
+      <div class="q-text" id="qText">Loading…</div>
+      <div class="options-grid" id="optionsGrid"></div>
+      <div class="scale-labels">
+        <span>Never</span><span>Rarely</span><span>Sometimes</span><span>Often</span><span>Always</span>
+      </div>
+    </div>
+    <div class="quiz-nav">
+      <button class="btn-secondary" id="prevBtn" onclick="prevQ()" disabled>← Previous</button>
+      <span class="q-counter" id="qCounter">0 / 15 answered</span>
+      <button class="btn-primary" id="nextBtn" onclick="nextQ()">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div class="page" id="page-result">
+  <div class="result-wrap">
+    <div class="result-hero glass">
+      <div id="resultBadge" class="result-badge"></div>
+      <div class="stress-meter">
+        <svg class="meter-ring" width="220" height="220" viewBox="0 0 220 220">
+          <circle class="meter-bg" cx="110" cy="110" r="90"/>
+          <circle class="meter-fill" id="meterFill" cx="110" cy="110" r="90" stroke-dashoffset="565"/>
+        </svg>
+        <div class="meter-center">
+          <div class="meter-pct" id="meterPct">0%</div>
+          <div class="meter-label">Stress</div>
+        </div>
+      </div>
+      <div class="result-title" id="resultTitle"></div>
+      <div class="result-subtitle" id="resultSubtitle"></div>
+    </div>
+    <div class="result-grid">
+      <div class="result-section glass" style="padding:2rem">
+        <h3>🔍 Key Findings</h3>
+        <ul class="insight-list" id="insightList"></ul>
+      </div>
+      <div class="result-section glass" style="padding:2rem">
+        <h3>🛠 Recommendations</h3>
+        <ul class="insight-list" id="recoList"></ul>
+      </div>
+    </div>
+    <div class="glass" style="padding:2rem;margin-top:1.5rem">
+      <h3 style="font-size:1.2rem;font-weight:700;color:var(--text-dark);margin-bottom:1.5rem;display:flex;align-items:center;gap:10px;">▶ Curated Resources for You</h3>
+      <div class="yt-grid" id="ytGrid"></div>
+    </div>
+    <div class="metrics-wrap glass">
+      <div class="metrics-title">
+        Python ML Model Performance
+        <span class="python-badge">🐍 scikit-learn</span>
+      </div>
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-val" id="val-accuracy" style="color:#0ea5e9">--%</div>
+          <div class="metric-name">Accuracy</div>
+          <div class="metric-bar"><div class="metric-bar-fill" id="bar-accuracy" style="width:0%;background:#0ea5e9"></div></div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val" id="val-precision" style="color:#10b981">--%</div>
+          <div class="metric-name">Precision</div>
+          <div class="metric-bar"><div class="metric-bar-fill" id="bar-precision" style="width:0%;background:#10b981"></div></div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val" id="val-recall" style="color:#6366f1">--%</div>
+          <div class="metric-name">Recall</div>
+          <div class="metric-bar"><div class="metric-bar-fill" id="bar-recall" style="width:0%;background:#6366f1"></div></div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val" id="val-f1" style="color:#f59e0b">--%</div>
+          <div class="metric-name">F1 Score</div>
+          <div class="metric-bar"><div class="metric-bar-fill" id="bar-f1" style="width:0%;background:#f59e0b"></div></div>
+        </div>
+      </div>
+      <div class="model-info">
+        <div class="model-info-item"><strong>Model</strong>Logistic Regression (sklearn LBFGS)</div>
+        <div class="model-info-item"><strong>Training Set</strong><span id="dataset-size">…</span> student samples, 15 features</div>
+        <div class="model-info-item"><strong>Validation</strong>80/20 Train-Test Split</div>
+        <div class="model-info-item"><strong>Classes</strong>Low (0) / Moderate (1) / High (2)</div>
+        <div class="model-info-item"><strong>Features</strong>Academic, Social, Physical, Emotional</div>
+        <div class="model-info-item"><strong>Database</strong><span style="color:#10b981">● SQLite (persistent)</span></div>
+      </div>
+    </div>
+    <div class="restart-wrap">
+      <p style="color:var(--muted);font-size:1rem;font-weight:500;">Want to track changes over time?</p>
+      <button class="btn-restart" onclick="restartQuiz()">↺ Retake Assessment</button>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<div class="page" id="page-about">
+  <div class="about-wrap">
+    <div class="glass" style="padding:3rem;margin-bottom:3rem">
+      <div class="about-title">About MindScan</div>
+      <div class="about-sub">A Python-powered mental wellness tool built for students, by students.</div>
+      <p style="color:var(--text);font-size:1rem;line-height:1.8">
+        MindScan uses a Flask backend running scikit-learn's Logistic Regression model. User responses are stored in a SQLite database and used to continuously improve the model. The model is retrained automatically after each submission, so it gets smarter as more students use it.
+      </p>
+      <div class="tech-section">
+        <h3>Technologies Used</h3>
+        <div class="tech-tags">
+          <span class="tech-tag">Python 3</span>
+          <span class="tech-tag">Flask</span>
+          <span class="tech-tag">scikit-learn</span>
+          <span class="tech-tag">NumPy</span>
+          <span class="tech-tag">SQLite</span>
+          <span class="tech-tag">MinMaxScaler</span>
+          <span class="tech-tag">LBFGS Solver</span>
+          <span class="tech-tag">HTML/CSS/JS</span>
+        </div>
+      </div>
+      <div class="dataset-card glass">
+        <h4>📊 Dataset & Pipeline</h4>
+        <p>The backend generates 780 synthetic student samples based on the Perceived Stress Scale (PSS-10). Real user responses are stored in SQLite and merged into the training set. Data is cleaned (outlier removal), Min-Max normalized, shuffled, and split 80/20 before training. Metrics (accuracy, precision, recall, F1) are computed on the held-out test set using sklearn's reporting tools.</p>
+      </div>
+    </div>
+    <h2 style="font-size:1.6rem;font-weight:700;color:var(--text-dark);margin-bottom:2rem;text-align:center;">Meet the Creators</h2>
+    <div class="creators-grid">
+      <div class="creator-card glass">
+        <div class="avatar">KDS</div>
+        <div class="creator-name">Karandeep Singh</div>
+        <div style="font-size:0.8rem;color:var(--muted);margin-bottom:8px">25/A03/039</div>
+        <div class="creator-dept">B.Tech CSE</div>
+      </div>
+      <div class="creator-card glass">
+        <div class="avatar">KS</div>
+        <div class="creator-name">Kirti Sakhuja</div>
+        <div style="font-size:0.8rem;color:var(--muted);margin-bottom:8px">25/A03/044</div>
+        <div class="creator-dept">B.Tech CSE</div>
+      </div>
+      <div class="creator-card glass">
+        <div class="avatar">KP</div>
+        <div class="creator-name">Kishlay Prakhar</div>
+        <div style="font-size:0.8rem;color:var(--muted);margin-bottom:8px">25/A03/045</div>
+        <div class="creator-dept">B.Tech CSE</div>
+      </div>
+    </div>
+    <div class="glass" style="padding:2rem;text-align:center;background:#fff8f1;border-color:#ffedd5;">
+      <p style="color:#9a3412;font-size:0.95rem;font-weight:500;">
+        ⚠️ MindScan is a student project for academic purposes only. It is not a clinical diagnostic tool.<br/>
+        If you are experiencing severe mental health issues, please consult a professional counsellor.
+      </p>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+// ─── QUESTIONS ────────────────────────────────────────────────────
+const QUESTIONS=[
+  {text:"How often have you felt overwhelmed by your academic workload?",cat:"Academic"},
+  {text:"How often do you have difficulty concentrating on your studies due to worries?",cat:"Academic"},
+  {text:"How frequently do you feel unable to control important things in your academic life?",cat:"Academic"},
+  {text:"How often do you feel nervous or stressed before exams or deadlines?",cat:"Academic"},
+  {text:"How often do you feel that difficulties are piling up so high that you cannot overcome them?",cat:"Emotional"},
+  {text:"How often have you felt upset because of something that happened unexpectedly at college?",cat:"Emotional"},
+  {text:"How often do you feel irritable or short-tempered without a clear reason?",cat:"Emotional"},
+  {text:"How often do you find it hard to relax or switch off after studying?",cat:"Emotional"},
+  {text:"How often do you experience difficulty falling or staying asleep due to racing thoughts?",cat:"Physical"},
+  {text:"How often do you feel physically exhausted even after a full night's rest?",cat:"Physical"},
+  {text:"How often do you experience headaches, stomach aches, or tension in your body?",cat:"Physical"},
+  {text:"How often do you skip meals or eat poorly due to stress or time pressure?",cat:"Physical"},
+  {text:"How often do you feel isolated or disconnected from your friends and classmates?",cat:"Social"},
+  {text:"How often do you feel that you have no one to talk to when you're stressed?",cat:"Social"},
+  {text:"How often do you feel that your future is uncertain and beyond your control?",cat:"Emotional"},
+];
+const OPT_LABELS=["Never","Rarely","Sometimes","Often","Always"];
+
+let answers=new Array(15).fill(-1);
+let currentQ=0;
+
+// ─── NAVIGATION ───────────────────────────────────────────────────
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const map={home:0,quiz:1,about:2};
+  document.querySelectorAll('.nav-btn')[map[id]||0]?.classList.add('active');
+  document.getElementById('navLinks').classList.remove('open');
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(id==='quiz') renderQuestion();
+}
+
+function toggleNav(){
+  document.getElementById('navLinks').classList.toggle('open');
+}
+
+// ─── QUIZ RENDER ──────────────────────────────────────────────────
+function renderQuestion(){
+  const q=QUESTIONS[currentQ];
+  document.getElementById('qCategory').textContent=q.cat;
+  document.getElementById('qNum').textContent='Question '+(currentQ<9?'0':'')+(currentQ+1);
+  document.getElementById('qText').textContent=q.text;
+  document.getElementById('progressLabel').textContent=`Question ${currentQ+1} of 15`;
+  const pct=Math.round((currentQ/15)*100);
+  document.getElementById('progressPct').textContent=pct+'%';
+  document.getElementById('progressFill').style.width=pct+'%';
+  const answered=answers.filter(a=>a!==-1).length;
+  document.getElementById('qCounter').textContent=`${answered} / 15 answered`;
+  document.getElementById('prevBtn').disabled=currentQ===0;
+  document.getElementById('nextBtn').textContent=currentQ===14?'See Results →':'Next →';
+  const grid=document.getElementById('optionsGrid');
+  grid.innerHTML='';
+  for(let i=0;i<5;i++){
+    const btn=document.createElement('button');
+    btn.className='opt-btn'+(answers[currentQ]===i?' selected':'');
+    btn.innerHTML=`<div style="font-size:1.2rem;margin-bottom:6px;font-weight:700;">${i}</div><div class="opt-label">${OPT_LABELS[i]}</div>`;
+    btn.onclick=()=>selectAnswer(i);
+    grid.appendChild(btn);
+  }
+  const card=document.getElementById('questionCard');
+  card.style.animation='none';
+  requestAnimationFrame(()=>{card.style.animation='fadeIn 0.3s ease';});
+}
+
+function selectAnswer(val){
+  answers[currentQ]=val;
+  document.querySelectorAll('.opt-btn').forEach((b,i)=>b.classList.toggle('selected',i===val));
+  document.getElementById('qCounter').textContent=`${answers.filter(a=>a!==-1).length} / 15 answered`;
+}
+
+function nextQ(){
+  if(answers[currentQ]===-1){
+    const card=document.getElementById('questionCard');
+    card.style.border='1px solid #ef4444';
+    card.style.boxShadow='0 0 15px rgba(239,68,68,0.2)';
+    setTimeout(()=>{card.style.border='';card.style.boxShadow='';},1200);
+    return;
+  }
+  if(currentQ<14){currentQ++;renderQuestion();}
+  else{submitToBackend();}
+}
+
+function prevQ(){if(currentQ>0){currentQ--;renderQuestion();}}
+
+// ─── API CALLS ────────────────────────────────────────────────────
+async function submitToBackend(){
+  showLoading('Running Python ML model…');
+  try{
+    const res=await fetch('/api/predict',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({answers})
+    });
+    if(!res.ok) throw new Error('Server error '+res.status);
+    const data=await res.json();
+    hideLoading();
+    showResults(data.stress_pct, data.level, data.metrics);
+  }catch(err){
+    hideLoading();
+    alert('Could not reach Python backend. Make sure app.py is running on port 5000.\n\nError: '+err.message);
+  }
+}
+
+async function fetchHomeMetrics(){
+  try{
+    const res=await fetch('/api/metrics');
+    if(!res.ok)return;
+    const m=await res.json();
+    document.getElementById('home-acc-val').textContent=m.accuracy+'%';
+  }catch(e){}
+}
+
+// ─── LOADING ─────────────────────────────────────────────────────
+function showLoading(msg){
+  document.getElementById('loadingText').textContent=msg||'Processing…';
+  document.getElementById('loadingOverlay').classList.add('visible');
+}
+function hideLoading(){
+  document.getElementById('loadingOverlay').classList.remove('visible');
+}
+
+// ─── RESULT CONTENT ───────────────────────────────────────────────
+const RESULTS={
+  low:{
+    title:"You're doing great!",
+    subtitle:"Your stress levels are within a healthy range. Keep up the positive habits supporting your wellbeing.",
+    badge:"Low Stress",
+    badgeStyle:"background:#d1fae5;color:#065f46;border:1px solid #a7f3d0;",
+    meterColor:"#10b981",
+    insights:["Your academic workload feels manageable right now","Sleep and physical health appear to be in good shape","You have a strong emotional support system","Your concentration and focus are relatively intact"],
+    recos:["Maintain your current study routines and sleep schedule","Practise gratitude journaling to reinforce positive patterns","Explore mindfulness to stay centred during exam periods","Stay socially connected — nurture your support network"],
+    videos:[
+      {title:"5-Minute Morning Mindfulness for Students",ch:"Headspace",tag:"Mindfulness",emoji:"🧘",url:"https://www.youtube.com/results?search_query=5+minute+morning+mindfulness+students"},
+      {title:"How to Build a Study Schedule That Actually Works",ch:"Mike and Matty",tag:"Productivity",emoji:"📚",url:"https://www.youtube.com/results?search_query=build+study+schedule+students"},
+      {title:"The Science of Happiness — Simple Habits",ch:"Kurzgesagt",tag:"Wellness",emoji:"😊",url:"https://www.youtube.com/results?search_query=science+of+happiness+simple+habits"},
+      {title:"Yoga for Beginners — Stress Relief",ch:"Yoga With Adriene",tag:"Physical",emoji:"🌿",url:"https://www.youtube.com/results?search_query=yoga+beginners+stress+relief"},
+    ]
+  },
+  moderate:{
+    title:"Moderate Stress Detected",
+    subtitle:"You're experiencing some stress worth addressing. With the right strategies, you can restore balance.",
+    badge:"Moderate Stress",
+    badgeStyle:"background:#fef3c7;color:#92400e;border:1px solid #fde68a;",
+    meterColor:"#f59e0b",
+    insights:["Academic pressure is creating noticeable tension","Sleep quality or energy levels may be affected","Some emotional regulation challenges are present","You might be withdrawing slightly from social connection"],
+    recos:["Break large tasks into smaller, daily micro-goals","Use the Pomodoro technique to manage study time better","Get at least 7–8 hours of sleep — it directly impacts stress","Talk to a friend, family member, or counsellor"],
+    videos:[
+      {title:"How to Manage Study Stress — Evidence-Based Tips",ch:"Thomas Frank",tag:"Academic",emoji:"🎯",url:"https://www.youtube.com/results?search_query=manage+study+stress+evidence+based+tips"},
+      {title:"Box Breathing — Calm Anxiety in 4 Minutes",ch:"Mark Metry",tag:"Breathing",emoji:"🌬",url:"https://www.youtube.com/results?search_query=box+breathing+calm+anxiety+technique"},
+      {title:"Why Students Feel Overwhelmed and How to Fix It",ch:"Psych2Go",tag:"Psychology",emoji:"🧠",url:"https://www.youtube.com/results?search_query=why+students+feel+overwhelmed+how+to+fix"},
+      {title:"Sleep Better Under Academic Pressure",ch:"Andrew Huberman",tag:"Sleep",emoji:"💤",url:"https://www.youtube.com/results?search_query=sleep+better+academic+pressure+students"},
+      {title:"Mindfulness Meditation for Stress & Anxiety",ch:"Goodful",tag:"Mindfulness",emoji:"🌸",url:"https://www.youtube.com/results?search_query=mindfulness+meditation+stress+anxiety+students"},
+    ]
+  },
+  high:{
+    title:"High Stress — You Need Support",
+    subtitle:"Your results suggest significant stress. Please reach out to someone you trust. You don't have to face this alone.",
+    badge:"High Stress",
+    badgeStyle:"background:#fee2e2;color:#991b1b;border:1px solid #fecaca;",
+    meterColor:"#ef4444",
+    insights:["Multiple stress domains are showing high activation","Physical symptoms like fatigue or headaches may be frequent","Emotional regulation is likely strained right now","Social support may feel insufficient or inaccessible"],
+    recos:["Speak to your college counsellor or mental health professional","Reduce academic load if possible — your health comes first","Practice daily deep breathing or progressive muscle relaxation","Limit social media; replace with one social interaction per day"],
+    videos:[
+      {title:"I'm a Student and I'm Not Okay — Mental Health Talk",ch:"Psych2Go",tag:"Mental Health",emoji:"💬",url:"https://www.youtube.com/results?search_query=student+mental+health+not+okay"},
+      {title:"Emergency Calm Down — Panic Attack & Anxiety Relief",ch:"Therapy in a Nutshell",tag:"Crisis",emoji:"🆘",url:"https://www.youtube.com/results?search_query=calm+down+panic+attack+anxiety+relief+quick"},
+      {title:"How to Talk to Someone About Your Mental Health",ch:"Kati Morton",tag:"Support",emoji:"🤝",url:"https://www.youtube.com/results?search_query=how+to+talk+mental+health+someone"},
+      {title:"Progressive Muscle Relaxation — Full Body",ch:"The Honest Guys",tag:"Relaxation",emoji:"🛌",url:"https://www.youtube.com/results?search_query=progressive+muscle+relaxation+full+body"},
+      {title:"Burnout — Signs, Causes and Recovery",ch:"Improvement Pill",tag:"Burnout",emoji:"🔥",url:"https://www.youtube.com/results?search_query=student+burnout+signs+causes+recovery"},
+    ]
+  }
+};
+
+function showResults(pct, level, metrics){
+  showPage('result');
+  const R=RESULTS[level];
+  document.getElementById('resultBadge').textContent=R.badge;
+  document.getElementById('resultBadge').style.cssText=R.badgeStyle;
+  document.getElementById('resultTitle').textContent=R.title;
+  document.getElementById('resultSubtitle').textContent=R.subtitle;
+
+  // Meter animation
+  setTimeout(()=>{
+    const circ=document.getElementById('meterFill');
+    circ.style.stroke=R.meterColor;
+    circ.style.strokeDashoffset=565-(565*(pct/100));
+    let count=0;
+    const int=setInterval(()=>{
+      count+=2; if(count>pct) count=pct;
+      document.getElementById('meterPct').textContent=count+'%';
+      if(count===pct) clearInterval(int);
+    },30);
+  },200);
+
+  document.getElementById('insightList').innerHTML=R.insights.map(i=>`<li class="insight-item">${i}</li>`).join('');
+  document.getElementById('recoList').innerHTML=R.recos.map(r=>`<li class="insight-item">${r}</li>`).join('');
+  document.getElementById('ytGrid').innerHTML=R.videos.map(v=>`
+    <a class="yt-card" href="${v.url}" target="_blank" rel="noopener">
+      <div class="yt-thumb"><span style="font-size:3rem">${v.emoji}</span><div class="yt-play"></div></div>
+      <div class="yt-tag">${v.tag}</div>
+      <div class="yt-title">${v.title}</div>
+      <div class="yt-channel">${v.ch}</div>
+    </a>`).join('');
+
+  // Update metrics from Python backend
+  if(metrics){
+    updateMetric('accuracy',  metrics.accuracy);
+    updateMetric('precision', metrics.precision);
+    updateMetric('recall',    metrics.recall);
+    updateMetric('f1',        metrics.f1);
+    document.getElementById('home-acc-val').textContent=metrics.accuracy+'%';
+    if(metrics.dataset_size) document.getElementById('dataset-size').textContent=metrics.dataset_size;
+  }
+}
+
+function updateMetric(key, val){
+  document.getElementById('val-'+key).textContent=val+'%';
+  setTimeout(()=>{ document.getElementById('bar-'+key).style.width=val+'%'; },300);
+}
+
+function restartQuiz(){
+  answers=new Array(15).fill(-1);
+  currentQ=0;
+  showPage('quiz');
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded',()=>{
+  fetchHomeMetrics();
+  renderQuestion();
+});
+</script>
+</body>
+</html>
